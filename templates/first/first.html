@@ -9,23 +9,25 @@
     <link rel="stylesheet" href="first.css">
 </head>
 <body>
-    <header class="pt-5 container-fluid d-flex bg-blue-sky hh justify-content-center align-items-center flex-column">
-        <h1 class="fw-bold header-text fs-custom-big">{{title}}</h1>
-        <h1 class="">Github Portfolio Generated with pyolink <a href="https://github.com/DanielcoderX/pyolink"><img src="GitHub-Mark-64px.png" width="50px" /></a></h1>
-    </header>
-    <main class="bg-blue-sky">
-        <div class="container p-5">
-            <div class="row d-flex flex-column gy-3">
-                {% for key,value in links %}
-                    <div class="col rounded p-4 glow">
-                        <div class="row ps-5a">
-                            <div class="col-sm-2 text-center bg-bb rounded p-2 fw-bold mw-25 border-0 shadow-sm">{{key}}</div>
-                            <div class="col-sm-10 fs-au text-center bg-bb rounded p-2 mt-sm-2 fw-regular border-0 shadow-sm w-75 mx-auto"><a href="{{value}}" class="link-unstyled text-dark">{{value}}</a></div>
-                        </div>
+<header class="pt-5 container-fluid d-flex bg-blue-sky hh justify-content-center align-items-center flex-column">
+    <h1 class="fw-bold header-text fs-custom-big">{{title}}</h1>
+    <h1 class="">Github Portfolio Generated with pyolink <a href="https://github.com/DanielcoderX/pyolink"><img src="GitHub-Mark-64px.png" width="50px" /></a></h1>
+</header>
+<main class="bg-blue-sky">
+    <div class="container py-5">
+        <div class="row">
+            {% for key,value in links %}
+            <div class="col-md-6 col-lg-3 m-1">
+                <div class="card rounded glow">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fs-au fw-bold">{{key}}</h5>
+                        <p class="card-text fs-au"><a href="{{value}}" class="link-unstyled text-dark">{{value}}</a></p>
                     </div>
-                {% endfor %}
+                </div>
             </div>
+            {% endfor %}
         </div>
-    </main>
+    </div>
+</main>
 </body>
 </html>

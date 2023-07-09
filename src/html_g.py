@@ -1,32 +1,44 @@
-from .utils import richPrint,rootProject
-from os import makedirs,remove,listdir,path as osPath
+import os
+from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from shutil import copy2
+from src.utils import rich_print, root_project
 
-root = rootProject().replace("\\","/") 
-outputDir = root + "/build/" 
-templatesLocation = root + "/templates/"
-environment = Environment(loader=FileSystemLoader(templatesLocation))
+root = Path(root_project())
+output_dir = root / "build"
+templates_location = root / "templates"
+environment = Environment(loader=FileSystemLoader(str(templates_location)))
 
-def htmlMaker(username,repos,which_template,template_name):
-    template = environment.get_template(which_template+template_name+".html")
-    richPrint(f"[bold blue]Starting Generation[/bold blue]")
+
+def html_maker(username, repos, which_template, template_name):
+    template = environment.get_template(os.path.join(which_template, template_name + ".html"))
+    rich_print("[bold blue]Starting Generation[/bold blue]")
+
     try:
-        try:
-            makedirs(outputDir)
-            for path in listdir(templatesLocation+which_template):
-                if ".html" in path:
-                    pass
-                else:
-                    copy2(templatesLocation+which_template+path,outputDir.rstrip('/'))
-        except:
-            pass
-        if osPath.isfile(str(outputDir+username+".html")):
-            remove(str(outputDir+username+".html"))
-        content = template.render(title=username,links=repos)
-        htmlFile = open(f"{outputDir}{username}.html","x")
-        htmlFile.write(content)
-        htmlFile.close()
-        richPrint(f"\n[bold green]Generating Front Template Finished Successfully => {outputDir}{username}.html[/bold green]")
-    except:
-        richPrint("[bold red]There is a Problem[/bold red]")
+        os.makedirs(str(output_dir), exist_ok=True)
+
+        for path in os.listdir(str(templates_location / which_template)):
+            if not path.endswith(".html"):
+                copy2(str(templates_location / which_template / path), str(output_dir))
+
+        html_file_path = output_dir / f"{username}.html"
+
+        if html_file_path.is_file():
+            html_file_path.unlink()
+
+        content = template.render(title=username, links=repos)
+
+        with open(str(html_file_path), "w") as html_file:
+            html_file.write(content)
+
+        rich_print(f"\n[bold green]Generating Front Template Finished Successfully => {html_file_path}[/bold green]")
+
+    except FileNotFoundError:
+        rich_print("[bold red]File not found[/bold red]")
+
+    except IsADirectoryError:
+        rich_print("[bold red]Directory operation not permitted[/bold red]")
+
+    except Exception as e:
+        rich_print("[bold red]An error occurred[/bold red]")
+        print(e)

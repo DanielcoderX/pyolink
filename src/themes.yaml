@@ -1,0 +1,5 @@
+themes:
+  - name: first
+    path: first/
+  - name: second
+    path: second/

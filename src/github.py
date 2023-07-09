@@ -1,45 +1,62 @@
 import requests
 from github import Github
 from tabulate import tabulate
-from .utils import clearScreen,richPrint
-from .html_g import htmlMaker
-git = Github()
+from src.utils import clear_screen, rich_print
+from src.html_g import html_maker
+import yaml
 
-def userExists(username):
-    addr = "https://api.github.com/users/" + str(username)
-    response = requests.get(addr)
+github = Github()
+
+def user_exists(username):
+    api_url = f"https://api.github.com/users/{username}"
+    response = requests.get(api_url)
+
     if response.status_code == 404:
-        richPrint("[bold red]Username Not Found![/bold red]")
+        rich_print("[bold red]Username Not Found![/bold red]")
         return False
-    if  response.status_code == 403:
-        richPrint("[bold red]Api Usage Rate Limit![/bold red]")
+    if response.status_code == 403:
+        rich_print("[bold red]API Usage Rate Limit![/bold red]")
         return False
-    if response.status_code == 200 or response.status_code == 304:
+    if response.ok:
         return True
 
-def getUser(username,theme):
+def get_user(username, theme):
     try:
-        user = git.get_user(username)
-        return printRepos(user.get_repos(),username,theme)
-    except:
-        richPrint("[bold red]We have some problems in the connection :)[/bold red]")
-def printRepos(repos,username,theme):
+        user = github.get_user(username)
+        themes = load_themes()
+        theme_path = get_theme_path(theme, themes)
+        return print_repos(user.get_repos(), username, theme_path, theme)
+    except requests.exceptions.RequestException:
+        rich_print("[bold red]We have some problems in the connection :)[/bold red]")
+
+def print_repos(repos, username, theme_path, theme):
     original_repos = []
     original_repos_name = []
+
     for repo in repos:
-        if repo.fork is False and repo.archived is False:
-            if username + ".git" in str(repo.clone_url):
-                next
-            else:
-                original_repos.append(repo.clone_url)
-                repo_name = str(repo.clone_url.split('/')[-1].split('.git')[0])
-                original_repos_name.append(repo_name)
-    table = [list(a) for a in zip(original_repos_name,original_repos)]
-    clearScreen()
-    print(f'\n{tabulate(table,headers=["Name","Repo Url"],tablefmt="grid")}\n')
-    richPrint("[bold green]Generating Front Template[/bold green]\n")
-    themes = {
-        "first":"first/"
-        # Create new templates in templates dir
-    }
-    htmlMaker(username,table,themes[theme],theme)
+        if not repo.fork and not repo.archived:
+            if f"{username}.git" in str(repo.clone_url):
+                continue
+            original_repos.append(repo.clone_url)
+            repo_name = str(repo.clone_url.split('/')[-1].split('.git')[0])
+            original_repos_name.append(repo_name)
+
+    table = [list(a) for a in zip(original_repos_name, original_repos)]
+    clear_screen()
+    print(f'\n{tabulate(table, headers=["Name", "Repo Url"], tablefmt="grid")}\n')
+    rich_print("[bold green]Generating Front Template[/bold green]\n")
+
+    html_maker(username, table, theme_path, theme)
+
+
+def load_themes():
+    with open("src/themes.yaml") as file:
+        themes_data = yaml.safe_load(file)
+    return themes_data.get("themes", [])
+
+
+def get_theme_path(theme, themes):
+    for t in themes:
+        if t.get("name") == theme:
+            return t.get("path", "")
+    return ""
